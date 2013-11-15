@@ -44,14 +44,16 @@ config["feeds"].each do |key,value|
   feed = SimpleRSS.parse open(value["link"])
 
   feed.entries.reverse.each do |entry|
-    shorten = bitly.shorten(entry.link)
-    short_link =  shorten.urls
-    max_length = 138 - short_link.length # 140 - link length - 2 chars for the colon & space
+    if entry.updated > value["last_seen"]
+      shorten = bitly.shorten(entry.link)
+      short_link =  shorten.urls
+      max_length = 138 - short_link.length # 140 - link length - 2 chars for the colon & space
     
-    truncated_title = truncate(entry.title, :length=>max_length)
-    tweet = "#{truncated_title}: #{short_link}"
-    puts "Tweeting #{tweet}"
-    Twitter.update(tweet) if entry.updated > value["last_seen"]
+      truncated_title = truncate(entry.title, :length=>max_length)
+      tweet = "#{truncated_title}: #{short_link}"
+      puts "Tweeting #{tweet}"
+      Twitter.update(tweet)
+    end  
   end
   
   value["last_seen"] = Time.now
